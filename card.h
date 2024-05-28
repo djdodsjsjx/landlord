@@ -7,7 +7,7 @@ class Card
 {
 public:
     enum CardSuit {
-        Suit_First,
+        Suit_Begin,
         Diamond,
         Club,
         Heart,

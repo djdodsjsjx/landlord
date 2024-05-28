@@ -67,7 +67,7 @@ void CardPanel::clicked()
     emit cardSelected(Qt::LeftButton);
 }
 
-void CardPanel::paintEvent(QPaintEvent *event)
+void CardPanel::paintEvent(QPaintEvent *event)  // 图形绘制事件
 {
     Q_UNUSED(event);
     QPainter p(this);
@@ -75,7 +75,7 @@ void CardPanel::paintEvent(QPaintEvent *event)
     else p.drawPixmap(rect(), m_back);
 }
 
-void CardPanel::mousePressEvent(QMouseEvent *event)
+void CardPanel::mousePressEvent(QMouseEvent *event)  // 鼠标事件
 {
     emit cardSelected(event->button());
 }
