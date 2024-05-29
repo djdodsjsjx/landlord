@@ -17,6 +17,7 @@ public:
     GamePanel(QWidget *parent = nullptr);
     ~GamePanel();
 
+    void initButtonGroup();
 private:
     Ui::GamePanel *ui;
 };
