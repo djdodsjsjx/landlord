@@ -126,7 +126,7 @@ void GameControl::resetCardData()
 void GameControl::startLordCard()
 {
     m_currPlayer->prepareCallLord();
-    emit playerStatusChanged(m_currPlayer, ThinkingForPlayHand);
+    emit playerStatusChanged(m_currPlayer, ThinkingForCallLord);
 }
 
 void GameControl::becomeLord(Player *player, int bet)
@@ -160,23 +160,14 @@ int GameControl::getPlayerMaxBet()
 
 void GameControl::onGrabBet(Player *player, int bet)
 {
-    // 更新界面显示
-    // if (!bet || m_betRecord.bet >= bet) {  // 不抢地主或者有更高的分数
-    //     emit notifyGrabLordBet(player, 0, false);
-    // } else if (bet > 0 && !m_betRecord.bet) {  // 叫地主
-    //     emit noitfyGrabLordBet(player, bet, true);
-    // } else {  // 抢地主
-    //     emit notifyGrabLordBet(player, bet, false);
-    // }
 
-    if (++ m_betRecord.times == 4) {  // 出现一个轮回
-        if (!m_betRecord.player) {  // 都不抢
-            emit gameStatusChanged(DispatchCard);
-        } else {
-            becomeLord(player, m_betRecord.bet);
-        }
-        m_betRecord.reset();
-        return ;
+    // 更新界面显示
+    if (!bet || m_betRecord.bet >= bet) {  // 不抢地主或者有更高的分数
+        emit notifyGrabLordBetShow(player, 0, false);
+    } else if (bet > 0 && !m_betRecord.bet) {  // 叫地主
+        emit notifyGrabLordBetShow(player, bet, true);
+    } else {  // 抢地主
+        emit notifyGrabLordBetShow(player, bet, false);
     }
 
     if (bet == 3) {
@@ -190,9 +181,20 @@ void GameControl::onGrabBet(Player *player, int bet)
         m_betRecord.player = player;
     }
 
-    m_currPlayer = player->getNextPlayer();  // 继续抢地主
-    emit playerStatusChanged(m_currPlayer, ThinkingForCallLord);
+    if (++ m_betRecord.times == 3) {  // 出现一个轮回
+        if (!m_betRecord.player) {  // 都不抢
+            emit gameStatusChanged(DispatchCard);
+            m_currPlayer = player->getNextPlayer();
+        } else {
+            becomeLord(m_betRecord.player, m_betRecord.bet);
+        }
+        m_betRecord.reset();
+        return ;
+    }
+
+    m_currPlayer = player->getNextPlayer();  // 下一个玩家继续抢地主
     m_currPlayer->prepareCallLord();
+    emit playerStatusChanged(m_currPlayer, ThinkingForCallLord);
 }
 
 void GameControl::onPlayHand(Player *player, const Cards &cards)

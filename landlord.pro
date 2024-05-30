@@ -19,6 +19,7 @@ SOURCES += \
     mybutton.cpp \
     player.cpp \
     robot.cpp \
+    robotgraplord.cpp \
     scorepanel.cpp \
     userplayer.cpp
 
@@ -32,6 +33,7 @@ HEADERS += \
     mybutton.h \
     player.h \
     robot.h \
+    robotgraplord.h \
     scorepanel.h \
     userplayer.h
 

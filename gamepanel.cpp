@@ -47,6 +47,11 @@ void GamePanel::initButtonGroup()
         updatePlayerScore();
         gameStatusPrecess(GameControl::DispatchCard);  // 游戏状态 -> 发牌
     });
+    connect(ui->btnGroup, &ButtonGroup::betPoint, this, [=](int bet) {  // 抢地主按钮被点击
+        // m_gameCtl->getUserPlayer()->grabLordBet(bet);
+        m_gameCtl->onGrabBet(m_gameCtl->getUserPlayer(), bet);
+        ui->btnGroup->selectPanel(ButtonGroup::Empty);
+    });
 }
 
 void GamePanel::gameControlInit()
@@ -59,6 +64,13 @@ void GamePanel::gameControlInit()
     UserPlayer* user = m_gameCtl->getUserPlayer();
     m_playerList << leftRobot << rightRobot << user;
 
+    connect(m_gameCtl, &GameControl::playerStatusChanged, this, &GamePanel::onPlayerStatusChanged);
+    connect(m_gameCtl, &GameControl::notifyGrabLordBetShow, this, &GamePanel::onGrabLordBetShow);
+    connect(m_gameCtl, &GameControl::gameStatusChanged, this, &GamePanel::gameStatusPrecess);  // 叫地主状态 -> 出牌状态
+
+    connect(user, &Player::notifyPickCards, this, &GamePanel::disposeCard);
+    connect(leftRobot, &Player::notifyPickCards, this, &GamePanel::disposeCard);
+    connect(rightRobot, &Player::notifyPickCards, this, &GamePanel::disposeCard);
 }
 
 void GamePanel::updatePlayerScore()
@@ -152,45 +164,68 @@ void GamePanel::initGameScene()
         cardpanel->setImage(m_cardBackImage, m_cardBackImage);
         cardpanel->move(base + (m_cardSize.width() + 10) * i, 20);
         cardpanel->hide();
-        m_last3Card.push_back(cardpanel);
+        m_last3CardPanels.push_back(cardpanel);
     }
 }
 
 void GamePanel::gameStatusPrecess(GameControl::GameStatus status)
 {
     m_gameStatus = status;
+    int idx = 0;
     switch(status) {
-        case GameControl::DispatchCard:  // 发牌
-            for (auto it = m_cardMap.begin(); it != m_cardMap.end(); ++ it) {
-                it.value()->setSelected(false);
-                it.value()->setFrontSide(false);
-                it.value()->hide();
-                // std::cout << it.key().point() << " " << it.key().suit() << std::endl;
-                // std::cout << it.key() << std::endl;
-            }
-            for (int i = 0; i < m_last3Card.size(); ++ i) {
-                m_last3Card[i]->hide();
-            }
+    case GameControl::DispatchCard: {  // 发牌
+        for (auto it = m_cardMap.begin(); it != m_cardMap.end(); ++ it) {
+            it.value()->setSelected(false);
+            it.value()->setFrontSide(false);
+            it.value()->hide();
+        }
+        for (int i = 0; i < m_last3CardPanels.size(); ++ i) {
+            m_last3CardPanels[i]->hide();
+        }
 
-            int idx = m_playerList.indexOf(m_gameCtl->getUserPlayer());
-            for (int i = 0; i < m_playerList.size(); ++i) {
-                PlayerContext& tmp = m_contextMap[m_playerList[i]];
-                tmp.roleImg->hide();
-                tmp.isFrontSide = idx == i ? true : false;
-                tmp.info->hide();
-                tmp.lastCards.clear();
-            }
-            m_gameCtl->resetCardData();
-            m_baseCard->show();
-            ui->btnGroup->selectPanel(ButtonGroup::Empty);
-            m_timer->start(10);  // 开始发牌
-            break;
-        // case GameControl::CallingLord:
-        //     break;
-        // case GameControl::PlayingHand:
-        //     break;
-        // default:
-        //     break;
+        int idx = m_playerList.indexOf(m_gameCtl->getUserPlayer());
+        for (int i = 0; i < m_playerList.size(); ++i) {
+            PlayerContext& tmp = m_contextMap[m_playerList[i]];
+            tmp.roleImg->hide();
+            tmp.isFrontSide = idx == i ? true : false;
+            tmp.info->hide();
+            tmp.lastCards.clear();
+        }
+        m_gameCtl->resetCardData();
+        m_baseCard->show();
+        ui->btnGroup->selectPanel(ButtonGroup::Empty);
+        m_timer->start(10);  // 开始发牌
+        break;
+    }
+    case GameControl::CallingLord: {
+        CardList last3Card = m_gameCtl->getSurplusCards().toCardList();
+        for (int i = 0; i < last3Card.size(); ++ i) {
+            QPixmap front = m_cardMap[last3Card[i]]->getImage();
+            m_last3CardPanels[i]->setImage(front, m_cardBackImage);  // 当前界面底牌区域设置卡牌
+            m_last3CardPanels[i]->hide();
+        }
+        m_gameCtl->startLordCard();
+        break;
+    }
+
+    case GameControl::PlayingHand:
+        m_baseCard->hide();  // 隐藏发牌区
+        m_moveCard->hide();
+        for (int i = 0; i < m_last3CardPanels.size(); ++ i){
+            m_last3CardPanels[i]->show();  // 显示3张地主牌
+        }
+        for (int i = 0; i < m_playerList.size(); ++ i) {
+            PlayerContext& context = m_contextMap[m_playerList[i]];
+            context.info->hide();  // 隐藏地主的提示
+            Player* player = m_playerList[i];
+            QPixmap pixmap = loadRoleImage(player->getSex(), player->getDirection(), player->getRole());
+            context.roleImg->setPixmap(pixmap);
+            context.roleImg->show();
+        }
+
+        break;
+    default:
+        break;
     }
 }
 
@@ -222,7 +257,6 @@ void GamePanel::disposeCard(Player *player, const Cards &cs)
     CardList list = myCard.toCardList();
     for (int i = 0; i < list.size(); ++ i) {
         CardPanel* panel = m_cardMap[list[i]];
-        // CardPanel* panel = m_cardMap[qHash(list[i])];
         if (!panel) {
             std::cout << list[i].point() << " " << list[i].suit() << "panel is null" << std::endl;
         } else {
@@ -246,7 +280,6 @@ void GamePanel::updatePlayerCards(Player *player)
     m_cardsRect = QRect(leftX, topY, cardSpace*((int)list.size() - 1)+m_cardSize.width(),m_cardSize.height());
     for (int i = 0; i < list.size(); ++ i) {
         CardPanel* panel = m_cardMap[list[i]];  // 得到该玩家每一个卡牌对应窗口
-        // CardPanel* panel = m_cardMap[qHash(list[i])];
         panel->show();
         panel->raise();
         panel->setFrontSide(playercontext.isFrontSide);
@@ -305,6 +338,38 @@ QPixmap GamePanel::loadRoleImage(Player::Sex sex, Player::Direction direct, Play
     return pixmap;
 }
 
+void GamePanel::onPlayerStatusChanged(Player *player, GameControl::PlayerStatus status)
+{
+    switch(status) {
+    case GameControl::ThinkingForCallLord:
+        if (player == m_gameCtl->getUserPlayer()) {
+            ui->btnGroup->selectPanel(ButtonGroup::CallLord, m_gameCtl->getPlayerMaxBet());
+        }
+        break;
+    case GameControl::ThinkingForPlayHand:
+        break;
+    case GameControl::Winning:
+        break;
+    default:
+        break;
+    }
+}
+
+void GamePanel::onGrabLordBetShow(Player *player, int bet, bool flag)
+{
+    PlayerContext& context = m_contextMap[player];
+    if (!bet) {
+        context.info->setPixmap(QPixmap(":/images/buqinag.png"));
+    } else {
+        if (flag) {
+            context.info->setPixmap(QPixmap(":/images/jiaodizhu.png"));
+        } else {
+            context.info->setPixmap(QPixmap(":/images/qiangdizhu.png"));
+        }
+    }
+    context.info->show();
+}
+
 void GamePanel::paintEvent(QPaintEvent *ev)
 {
     Q_UNUSED(ev);
@@ -321,8 +386,6 @@ void GamePanel::cropImage(const QPixmap &pix, int x, int y, Card& c)
     panel->setCardSize(m_cardSize);
     panel->hide();
     m_cardMap[c] = panel;
-    // m_cardMap[qHash(c)] = panel;
-
 }
 
 void GamePanel::cardMoveStep(Player *player, int move)
@@ -348,7 +411,6 @@ void GamePanel::cardMoveStep(Player *player, int move)
 
     int idx = m_playerList.indexOf(player);
     m_moveCard->move(pos[idx]);
-
 
 }
 

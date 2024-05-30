@@ -33,6 +33,9 @@ public:
     void disposeCard(Player* player, const Cards& cs);  // 展示卡牌
     void updatePlayerCards(Player* player);  // 更顽玩家手中的牌并展示
     QPixmap loadRoleImage(Player::Sex sex, Player::Direction direct, Player::Role role);
+
+    void onPlayerStatusChanged(Player* player, GameControl::PlayerStatus status);  // 处理玩家信号发生变化
+    void onGrabLordBetShow(Player* player, int bet, bool flag);  // 界面相应叫/抢地主
 protected:
     void paintEvent(QPaintEvent* ev);
 
@@ -58,7 +61,7 @@ private:
     QPoint m_baseCardPos;  // 发牌卡牌位置
     CardPanel* m_baseCard;  // 发牌卡牌
     CardPanel* m_moveCard;  // 移动卡牌
-    QVector<CardPanel*> m_last3Card;  // 发牌保留的三张底牌
+    QVector<CardPanel*> m_last3CardPanels;  // 发牌保留的三张底牌
     GameControl::GameStatus m_gameStatus;  // 游戏状态
     QTimer* m_timer;  // 发牌定时器
     QRect m_cardsRect;  // 现存卡牌占有的矩形

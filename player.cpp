@@ -45,7 +45,7 @@ void Player::setDirection(Direction direction)
     m_direction = direction;
 }
 
-Player::Direction Player::getDirectoin()
+Player::Direction Player::getDirection()
 {
     return m_direction;
 }

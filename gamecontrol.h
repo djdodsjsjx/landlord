@@ -14,9 +14,9 @@ struct BetRecord{
         bet = 0;
         times = 0;
     }
-    Player* player;
-    int bet;
-    int times;
+    Player* player = nullptr;
+    int bet = 0;
+    int times = 0;
 };
 
 class GameControl : public QObject
@@ -54,7 +54,7 @@ public:
     void onPlayHand(Player* player, const Cards& cards);   // 处理玩家类发送的出牌事件
 signals:
     void playerStatusChanged(Player* player, PlayerStatus status);  // 玩家状态变化
-    void notifyGrabLordBet(Player* player, int bet, bool flag);  // 通知玩家抢地主
+    void notifyGrabLordBetShow(Player* player, int bet, bool flag);  // 通知界面显示对应抢地主信息
     void gameStatusChanged(GameStatus status);  // 游戏状态发生变化
     void notifyPlayHand(Player* player, Cards& card);  // 通知玩家出牌
     void pendingInfo(Player* player, Cards& card);  // 将上一个玩家出的牌通知给其他玩家
