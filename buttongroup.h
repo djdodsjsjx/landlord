@@ -20,10 +20,10 @@ public:
     void selectPanel(Panel type, int bet=0);  // 切换按钮组
 
 signals:
-    void startGame();  // 开始游戏按钮显示
-    void playHand();  // 出牌按钮显示
-    void pass();  // 不出牌按钮显示
-    void betPoint(int bet);  // 抢地主
+    void startGame();  // 开始游戏按钮信号
+    void playHand();  // 出牌按钮信号
+    void pass();  // 不出牌按钮信号
+    void betPoint(int bet);  // 抢地主信号
 
 
 private:

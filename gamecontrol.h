@@ -9,7 +9,7 @@ struct BetRecord{
     BetRecord() {
         reset();
     }
-    reset() {
+    void reset() {
         player = nullptr;
         bet = 0;
         times = 0;

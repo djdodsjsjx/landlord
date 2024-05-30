@@ -2,7 +2,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
-
+#include <iostream>
 CardPanel::CardPanel(QWidget *parent) : QWidget(parent)
 {
 }
@@ -19,6 +19,16 @@ void CardPanel::setImage(const QPixmap &front, const QPixmap &back)
 QPixmap CardPanel::getImage()
 {
     return m_front;
+}
+
+void CardPanel::setCardSize(QSize size)
+{
+    m_cardSize = size;
+}
+
+QSize CardPanel::getCardSize()
+{
+    return m_cardSize;
 }
 
 void CardPanel::setFrontSide(bool flag)
@@ -74,6 +84,7 @@ void CardPanel::paintEvent(QPaintEvent *event)  // 图形绘制事件
     if (m_isfront) p.drawPixmap(rect(), m_front);
     else p.drawPixmap(rect(), m_back);
 }
+
 
 void CardPanel::mousePressEvent(QMouseEvent *event)  // 鼠标事件
 {

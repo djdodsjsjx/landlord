@@ -38,7 +38,7 @@ public:
 
     Card takeRandomCard();
 
-    CardList toCardList(SortType type=Desc);
+    CardList toCardList(SortType type = Desc);
 
 private:
     QSet<Card> m_cards;

@@ -14,6 +14,9 @@ public:
     void setImage(const QPixmap& front, const QPixmap& back);
     QPixmap getImage();
 
+    void setCardSize(QSize size);
+    QSize getCardSize();
+
     void setFrontSide(bool flag);
     bool isFrontSide();
 
@@ -40,6 +43,7 @@ private:
     bool m_isfront = true;
     bool m_isselect = false;
     Card m_card;
+    QSize m_cardSize;
     Player* m_player;
 };
 
