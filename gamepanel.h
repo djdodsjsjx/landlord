@@ -40,8 +40,9 @@ public:
     void onGrabLordBetShow(Player* player, int bet, bool flag);  // 界面相应叫/抢地主
     void showAnimation(AnimationType type, int bet=0);  // 显示抢地主/出牌相关提醒信息
     void onCardSelected(Qt::MouseButton button);  // 卡牌点击处理函数
-    void onUserPlayHand();  // 出牌处理函数
-
+    void onPlayHand();  // 出牌处理函数(按钮信号）
+    void onPass();  // 不出牌处理函数
+    void onPlayHandShow(Player* player, Cards& cards);  // 出牌显示处理函数(控制信号)
 protected:
     void paintEvent(QPaintEvent* ev);
     void mouseMoveEvent(QMouseEvent* ev);

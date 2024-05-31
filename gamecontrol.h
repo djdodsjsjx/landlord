@@ -51,7 +51,7 @@ public:
     int getPlayerMaxBet();  // 得到玩家下注的最高分数
 
     void onGrabBet(Player* player, int bet);  // 处理玩家类发送的叫地主事件
-    void onPlayHand(Player* player, const Cards& cards);   // 处理玩家类发送的出牌事件
+    void onPlayHand(Player* player, Cards& cards);   // 处理玩家类发送的出牌事件
 signals:
     void playerStatusChanged(Player* player, PlayerStatus status);  // 玩家状态变化
     void notifyGrabLordBetShow(Player* player, int bet, bool flag);  // 通知界面显示对应抢地主信息

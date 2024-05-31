@@ -50,7 +50,6 @@ void ButtonGroup::initButtons()
     connect(ui->threeScore, &MyButton::clicked, this, [=]() {
         emit betPoint(3);
     });
-
 }
 
 void ButtonGroup::selectPanel(Panel type, int bet)

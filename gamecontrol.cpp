@@ -197,9 +197,7 @@ void GameControl::onGrabBet(Player *player, int bet)
     emit playerStatusChanged(m_currPlayer, ThinkingForCallLord);
 }
 
-void GameControl::onPlayHand(Player *player, const Cards &cards)
+void GameControl::onPlayHand(Player *player, Cards &cards)
 {
-
+    emit notifyPlayHand(player, cards);  // 通知显示
 }
-
-

@@ -75,7 +75,7 @@ protected:
 
 signals:
     void notifyGrabLordBet(Player* player, int bet);  // 叫/抢地主信号
-    void notifyPlayHand(Player* player, const Cards& cards);  // 出牌信号
+    void notifyPlayHand(Player* player, Cards& cards);  // 出牌信号
     void notifyPickCards(Player* player, const Cards& cards);  // 更新牌信号
 };
 
