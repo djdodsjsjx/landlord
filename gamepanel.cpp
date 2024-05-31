@@ -2,6 +2,7 @@
 #include "ui_gamepanel.h"
 
 #include <ButtonGroup.h>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QTimer>
@@ -260,11 +261,12 @@ void GamePanel::disposeCard(Player *player, const Cards &cs)
     CardList list = myCard.toCardList();
     for (int i = 0; i < list.size(); ++ i) {
         CardPanel* panel = m_cardMap[list[i]];
-        if (!panel) {
-            std::cout << list[i].point() << " " << list[i].suit() << "panel is null" << std::endl;
-        } else {
-            panel->setOwner(player);
-        }
+        panel->setOwner(player);
+        // if (!panel) {
+        //     std::cout << list[i].point() << " " << list[i].suit() << "panel is null" << std::endl;
+        // } else {
+        //     panel->setOwner(player);
+        // }
     }
     updatePlayerCards(player);
 }
@@ -286,11 +288,11 @@ void GamePanel::updatePlayerCards(Player *player)
         panel->show();
         panel->raise();
         panel->setFrontSide(playercontext.isFrontSide);
-
+        int curTopY = panel->isSelected() ? topY - 10 : topY;
         if (playercontext.align == Horizontal) {  // 用户玩家
-            panel->move(leftX + cardSpace * i, topY);
+            panel->move(leftX + cardSpace * i, curTopY);
             int curw = i + 1 == list.size() ? m_cardSize.width() : cardSpace;
-            m_userCards[panel] = QRect(leftX+cardSpace*i, topY, curw, m_cardSize.height());  // 存储每张牌的可点击的区域
+            m_userCards[panel] = QRect(leftX+cardSpace*i, curTopY, curw, m_cardSize.height());  // 存储每张牌的可点击的区域
         } else {  // 机器人玩家
             leftX = cardsRect.left() + (cardsRect.width() - m_cardSize.width()) / 2;
             topY = cardsRect.top() + (cardsRect.height() - (list.size()-1)*cardSpace - m_cardSize.height()) / 2;
@@ -398,11 +400,55 @@ void GamePanel::showAnimation(AnimationType type, int bet)
     m_animation->show();
 }
 
+void GamePanel::onCardSelected(Qt::MouseButton button)
+{
+    if (m_gameStatus != GameControl::PlayingHand) {
+        return ;
+    }
+    CardPanel* panel = static_cast<CardPanel*>(sender());  // 获取信号方
+    if (panel->getPlayer() != m_gameCtl->getUserPlayer()) {
+        return ;
+    }
+    m_curSelCard = panel;
+    if (button == Qt::LeftButton) {  // 左击选中卡牌
+        panel->setSelected(!panel->isSelected());
+        updatePlayerCards(panel->getPlayer());
+        auto it = m_selCards.find(panel);
+        if (it != m_selCards.end()) m_selCards.erase(it);
+        else m_selCards.insert(panel);
+    } else if (button == Qt::RightButton) {  // 右击出牌
+        onUserPlayHand();
+    }
+}
+
+void GamePanel::onUserPlayHand()  // 出牌
+{
+
+}
+
 void GamePanel::paintEvent(QPaintEvent *ev)
 {
     Q_UNUSED(ev);
     QPainter p(this);
     p.drawPixmap(rect(), m_bkImage);
+}
+
+void GamePanel::mouseMoveEvent(QMouseEvent *ev)
+{
+    Q_UNUSED(ev);
+    if (ev->buttons() & Qt::LeftButton) {
+        QPoint pt = ev->pos();  // 得到鼠标的位置
+        if (m_cardsRect.contains(pt)) {  // 鼠标位置在用户卡牌上
+            for (auto &panel : m_userCards.keys()) {
+                if (m_curSelCard != panel && m_userCards[panel].contains(pt)) {
+                    m_curSelCard = panel;
+                    panel->clicked();  // 发射点击信号
+                }
+            }
+        } else {
+            m_curSelCard = nullptr;
+        }
+    }
 }
 
 void GamePanel::cropImage(const QPixmap &pix, int x, int y, Card& c)
@@ -414,6 +460,7 @@ void GamePanel::cropImage(const QPixmap &pix, int x, int y, Card& c)
     panel->setCardSize(m_cardSize);
     panel->hide();
     m_cardMap[c] = panel;
+    connect(panel, &CardPanel::cardSelected, this, &GamePanel::onCardSelected);
 }
 
 void GamePanel::cardMoveStep(Player *player, int move)

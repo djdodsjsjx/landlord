@@ -38,11 +38,17 @@ public:
 
     void onPlayerStatusChanged(Player* player, GameControl::PlayerStatus status);  // 处理玩家信号发生变化
     void onGrabLordBetShow(Player* player, int bet, bool flag);  // 界面相应叫/抢地主
+    void showAnimation(AnimationType type, int bet=0);  // 显示抢地主/出牌相关提醒信息
+    void onCardSelected(Qt::MouseButton button);  // 卡牌点击处理函数
+    void onUserPlayHand();  // 出牌处理函数
 
-    void showAnimation(AnimationType type, int bet=0);
 protected:
     void paintEvent(QPaintEvent* ev);
+    void mouseMoveEvent(QMouseEvent* ev);
 
+private:
+    void cropImage(const QPixmap& pix, int x, int y, Card& c);
+    void cardMoveStep(Player* player, int move);  // 发牌动画
 private:
     enum CardAlign{Horizontal, Vertical};
     struct PlayerContext {
@@ -70,8 +76,9 @@ private:
     QTimer* m_timer;  // 发牌定时器
     QRect m_cardsRect;  // 现存卡牌占有的矩形
     QMap<CardPanel*, QRect> m_userCards;  // 用户每张卡牌窗口对应矩形
-    void cropImage(const QPixmap& pix, int x, int y, Card& c);
-    void cardMoveStep(Player* player, int move);  // 发牌动画
     AnimationWindow* m_animation;
+    CardPanel* m_curSelCard;  // 此刻被鼠标选中的窗口
+    QSet<CardPanel*> m_selCards;   // 已经被选中的卡牌窗口
+
 };
 #endif // GAMEPANEL_H
