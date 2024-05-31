@@ -71,7 +71,7 @@ protected:
     Player* m_next = nullptr;  // 下一个玩家
     Cards m_cards;  // 存储的多张卡牌
     Cards m_pendCards;  // 打出的卡牌
-    Player* m_pendPlayer = nullptr;  // 带出牌玩家
+    Player* m_pendPlayer = nullptr;  // 上一刻出牌的玩家
 
 signals:
     void notifyGrabLordBet(Player* player, int bet);  // 叫/抢地主信号

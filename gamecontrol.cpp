@@ -37,7 +37,7 @@ void GameControl::PlayerInit()
     setCurrentPlayer(m_user);
 
     // 关联玩家类与游戏控制类叫地主事件
-    connect(m_user, &UserPlayer::notifyGrabLordBet, this, &GameControl::onGrabBet);
+    // connect(m_user, &UserPlayer::notifyGrabLordBet, this, &GameControl::onGrabBet);
     connect(m_robotLeft, &Robot::notifyGrabLordBet, this, &GameControl::onGrabBet);
     connect(m_robotRight, &Robot::notifyGrabLordBet, this, &GameControl::onGrabBet);
 

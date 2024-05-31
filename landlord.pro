@@ -18,9 +18,11 @@ SOURCES += \
     gamepanel.cpp \
     mybutton.cpp \
     player.cpp \
+    playhand.cpp \
     robot.cpp \
     robotgraplord.cpp \
     scorepanel.cpp \
+    strategy.cpp \
     userplayer.cpp
 
 HEADERS += \
@@ -32,9 +34,11 @@ HEADERS += \
     gamepanel.h \
     mybutton.h \
     player.h \
+    playhand.h \
     robot.h \
     robotgraplord.h \
     scorepanel.h \
+    strategy.h \
     userplayer.h
 
 FORMS += \
