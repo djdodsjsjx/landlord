@@ -50,6 +50,7 @@ protected:
 private:
     void cropImage(const QPixmap& pix, int x, int y, Card& c);
     void cardMoveStep(Player* player, int move);  // 发牌动画
+    void hidePlayerDropCards(Player* player);  // 隐藏玩家上一次出的牌
 private:
     enum CardAlign{Horizontal, Vertical};
     struct PlayerContext {

@@ -1,7 +1,9 @@
 #include "gamecontrol.h"
 
+#include <PlayHand.h>
 #include <QRandomGenerator>
 #include <QTimer>
+#include <iostream>
 
 GameControl::GameControl(QObject *parent)
     : QObject{parent}
@@ -38,18 +40,18 @@ void GameControl::PlayerInit()
 
     // 关联玩家类与游戏控制类叫地主事件
     // connect(m_user, &UserPlayer::notifyGrabLordBet, this, &GameControl::onGrabBet);
-    connect(m_robotLeft, &Robot::notifyGrabLordBet, this, &GameControl::onGrabBet);
-    connect(m_robotRight, &Robot::notifyGrabLordBet, this, &GameControl::onGrabBet);
+    connect(m_robotLeft, &Player::notifyGrabLordBet, this, &GameControl::onGrabBet);
+    connect(m_robotRight, &Player::notifyGrabLordBet, this, &GameControl::onGrabBet);
 
     // 关联玩家类与游戏控制类出牌事件
-    connect(m_user, &UserPlayer::notifyPlayHand, this, &GameControl::onPlayHand);
-    connect(m_robotLeft, &Robot::notifyPlayHand, this, &GameControl::onPlayHand);
-    connect(m_robotRight, &Robot::notifyPlayHand, this, &GameControl::onPlayHand);
+    connect(m_user, &Player::notifyPlayHand, this, &GameControl::onPlayHand);
+    connect(m_robotLeft, &Player::notifyPlayHand, this, &GameControl::onPlayHand);
+    connect(m_robotRight, &Player::notifyPlayHand, this, &GameControl::onPlayHand);
 
     // 关联游戏控制类与玩家类出牌信息
-    connect(this, &GameControl::pendingInfo, m_user, &UserPlayer::setPendingInfo);
-    connect(this, &GameControl::pendingInfo, m_robotLeft, &Robot::setPendingInfo);
-    connect(this, &GameControl::pendingInfo, m_robotRight, &Robot::setPendingInfo);
+    connect(this, &GameControl::pendingInfo, m_user, &Player::setPendingInfo);
+    connect(this, &GameControl::pendingInfo, m_robotLeft, &Player::setPendingInfo);
+    connect(this, &GameControl::pendingInfo, m_robotRight, &Player::setPendingInfo);
 }
 
 Robot *GameControl::getLeftRobot()
@@ -200,4 +202,49 @@ void GameControl::onGrabBet(Player *player, int bet)
 void GameControl::onPlayHand(Player *player, Cards &cards)
 {
     emit notifyPlayHand(player, cards);  // 通知显示
+
+    if (!cards.isEmpty()) {
+        m_pendCards = cards;
+        m_pendPlayer = player;
+        emit pendingInfo(player, cards);
+    }
+
+    PlayHand::HandType type = PlayHand(cards).getHandType();
+    if (type == PlayHand::Hand_Bomb || type == PlayHand::Hand_Bomb_Jokers) {
+        m_curBet *= 2;
+    }
+
+    if (player->getCards().isEmpty()) {  // 首先出完牌
+        std::cout << "is win" << std::endl;
+        Player* prev = player->getPrevPlayer();
+        Player* next = player->getNextPlayer();
+        if (player->getRole() == Player::Lord) {
+            player->setScore(player->getScore() + 2*m_curBet);
+            prev->setScore(prev->getScore() - m_curBet);
+            next->setScore(next->getScore() - m_curBet);
+            player->setWin(true);
+            prev->setWin(false);
+            next->setWin(false);
+        } else {
+            player->setScore(player->getScore() + m_curBet);
+            player->setWin(true);
+            if (prev->getRole() == Player::Farmer) {
+                prev->setScore(prev->getScore() - 2*m_curBet);
+                next->setScore(next->getScore() + m_curBet);
+                prev->setWin(false);
+                next->setWin(true);
+            } else {
+                prev->setScore(prev->getScore() + m_curBet);
+                next->setScore(next->getScore() - 2*m_curBet);
+                prev->setWin(true);
+                next->setWin(false);
+            }
+        }
+        emit playerStatusChanged(player, GameControl::Winning);
+        return ;
+    }
+
+    m_currPlayer = player->getNextPlayer();
+    m_currPlayer->preparePlayHand();
+    emit playerStatusChanged(m_currPlayer, GameControl::ThinkingForPlayHand);  // 取消按钮组显示
 }

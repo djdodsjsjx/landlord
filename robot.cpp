@@ -2,8 +2,10 @@
 #include "player.h"
 
 #include <RobotGrapLord.h>
+#include <RobotPlayHand.h>
 #include <Strategy.h>
 #include <iostream>
+#include <QMetaType>
 Robot::Robot(QObject *parent)
     : Player{parent}
 {
@@ -12,13 +14,22 @@ Robot::Robot(QObject *parent)
 
 void Robot::prepareCallLord()
 {
+
     RobotGrapLord* subThread = new RobotGrapLord(this);
+    connect(subThread, &RobotGrapLord::finished, this, [=]() {  // 线程销毁
+        subThread->deleteLater();
+    });
     subThread->start();
 }
 
 void Robot::preparePlayHand()
 {
-
+    qRegisterMetaType<Cards>("Cards&");
+    RobotPlayHand* subThread = new RobotPlayHand(this);
+    connect(subThread, &RobotPlayHand::finished, this, [=]() {  // 线程销毁
+        subThread->deleteLater();
+    });
+    subThread->start();
 }
 
 void Robot::thinkCallLord()
@@ -60,6 +71,8 @@ void Robot::thinkCallLord()
 
 void Robot::thinkPlayHand()
 {
-
+    Strategy st(this, m_cards);
+    Cards cs = st.makeStrategy();
+    playHand(cs);  // 机器人玩家出牌函数
 }
 

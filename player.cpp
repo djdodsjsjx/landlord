@@ -1,5 +1,5 @@
 #include "player.h"
-
+#include <iostream>
 Player::Player(QObject *parent)
     : QObject{parent}
 {}
@@ -62,7 +62,7 @@ Player::Type Player::getType()
 
 void Player::setScore(int score)
 {
-    m_score += score;
+    m_score = score;
 }
 
 int Player::getScore()

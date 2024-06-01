@@ -22,8 +22,15 @@ Cards Strategy::makeStrategy()
     return whetherToBeat(beatCards) ? beatCards : Cards();  // 是否出牌
 }
 
+void printCards(Cards& cards) {
+    CardList list = cards.toCardList();
+    for (auto &c : list) std::cout << c.point() << " ";
+    std::cout << std::endl;
+}
+
 Cards Strategy::firstPlay()
 {
+
     PlayHand hand(m_cards);
     if (hand.getHandType() != PlayHand::Hand_Unknown) {  // 一把出
         return m_cards;
@@ -269,10 +276,10 @@ Cards Strategy::findSamePointCards(Card::CardPoint point, int count)
             findCards << c;
         }
         if (findCnt == count) {
-            break;
+            return findCards;
         }
     }
-    return findCards;
+    return Cards();
 
 }
 
@@ -361,17 +368,6 @@ QVector<Cards> Strategy::pickOptimalSeqSingles()
     Cards cards = m_cards;
     cards.remove(findCardsByCount(4));  // 不能影响炸弹
     pickAllSeqSingles(allSeqSingles, seqSingles, cards);
-
-    for (auto css : allSeqSingles) {
-        for (auto cs : css) {
-            CardList t = cs.toCardList();
-            for (auto c : t) {
-                std::cout << c.point() << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }
 
     if (allSeqSingles.isEmpty()) {
         return QVector<Cards>();
