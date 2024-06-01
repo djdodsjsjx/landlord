@@ -6,3 +6,8 @@ UserPlayer::UserPlayer(QObject *parent)
     m_type = Player::User;
 }
 
+void UserPlayer::preparePlayHand()
+{
+    emit startCountDown();
+}
+

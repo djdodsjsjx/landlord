@@ -11,10 +11,9 @@ public:
     using Player::Player;
     explicit UserPlayer(QObject *parent = nullptr);
 
-
-
+    void preparePlayHand() override;
 signals:
-
+    void startCountDown();
 };
 
 #endif // USERPLAYER_H

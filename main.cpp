@@ -1,11 +1,12 @@
 #include "gamepanel.h"
 
+#include <LoadingPanel.h>
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    GamePanel w;
+    LoadingPanel w;
     w.show();
     return a.exec();
 }

@@ -2,9 +2,11 @@
 #include "ui_gamepanel.h"
 
 #include <ButtonGroup.h>
+#include <EndingPanel.h>
 #include <PlayHand.h>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPropertyAnimation>
 #include <QRandomGenerator>
 #include <QTimer>
 #include <iostream>
@@ -35,7 +37,7 @@ GamePanel::GamePanel(QWidget *parent)
     connect(m_timer, &QTimer::timeout, this, &GamePanel::onDispatchCard);
 
     m_animation = new AnimationWindow(this);
-
+    initCountDown();
 }
 
 GamePanel::~GamePanel()
@@ -178,7 +180,7 @@ void GamePanel::initGameScene()
     }
 }
 
-void GamePanel::gameStatusPrecess(GameControl::GameStatus status)
+void GamePanel::gameStatusPrecess(GameControl::GameStatus status)  // 玩家区域相关显示设置
 {
     m_gameStatus = status;
     int idx = 0;
@@ -232,7 +234,6 @@ void GamePanel::gameStatusPrecess(GameControl::GameStatus status)
             context.roleImg->setPixmap(pixmap);
             context.roleImg->show();
         }
-
         break;
     default:
         break;
@@ -370,6 +371,7 @@ QPixmap GamePanel::loadRoleImage(Player::Sex sex, Player::Direction direct, Play
     return pixmap;
 }
 
+// 和gameStautsChanged类似，输入参数多个player，可用于显示各个状态下的按钮组
 void GamePanel::onPlayerStatusChanged(Player *player, GameControl::PlayerStatus status)
 {
     switch(status) {
@@ -396,9 +398,9 @@ void GamePanel::onPlayerStatusChanged(Player *player, GameControl::PlayerStatus 
         updatePlayerCards(m_gameCtl->getLeftRobot());  // 更新显示
         updatePlayerCards(m_gameCtl->getRightRobot());
 
-        updatePlayerScore();  // 重新发牌
-        ui->btnGroup->selectPanel(ButtonGroup::Empty);
-        gameStatusPrecess(GameControl::DispatchCard);
+        updatePlayerScore();  // 分数更新
+
+        showEndingScorePanel();  // 结束面板&继续游戏
         break;
     default:
         break;
@@ -430,14 +432,25 @@ void GamePanel::showAnimation(AnimationType type, int bet)
         m_animation->showBetScore(bet);
         break;
     case AnimationType::ShunZi:
-        break;
     case AnimationType::LianDui:
+        m_animation->setFixedSize(250, 150);
+        m_animation->move((width()-m_animation->width())/2, 200);
+        m_animation->showSeq((AnimationWindow::Type)type);
         break;
     case AnimationType::Plane:
+        m_animation->setFixedSize(800, 75);
+        m_animation->move((width()-m_animation->width())/2, 200);
+        m_animation->showPlane();
         break;
     case AnimationType::JokerBomb:
+        m_animation->setFixedSize(250, 200);
+        m_animation->move((width()-m_animation->width())/2, (height() - m_animation->height()) / 2 - 70);
+        m_animation->showJokerBomb();
         break;
     case AnimationType::Bomb:
+        m_animation->setFixedSize(180, 200);
+        m_animation->move((width()-m_animation->width())/2, (height() - m_animation->height()) / 2 - 70);
+        m_animation->showBomb();
         break;
     default:
         break;
@@ -494,6 +507,7 @@ void GamePanel::onPlayHand()  // 相应鼠标点击的出牌事件
     }
     m_gameCtl->getUserPlayer()->playHand(cs);  // 用户进行出牌
     m_selCards.clear();
+    m_countDown->stopCountDown();
 }
 
 void GamePanel::onPass()  // 相应鼠标点击的不出牌事件
@@ -506,6 +520,7 @@ void GamePanel::onPass()  // 相应鼠标点击的不出牌事件
     Cards cards;
     m_gameCtl->getUserPlayer()->playHand(cards);  // 打出空牌
     onPlayHandShow(curPlayer, cards);
+    m_countDown->stopCountDown();
 }
 
 void GamePanel::onPlayHandShow(Player* player, Cards& cards)  // 界面显示出的牌
@@ -517,6 +532,62 @@ void GamePanel::onPlayHandShow(Player* player, Cards& cards)  // 界面显示出
         playerContext->info->show();
     }
     updatePlayerCards(player);  // 更新手上和出牌区的卡牌
+
+    PlayHand::HandType type = PlayHand(cards).getHandType();  // 更新显示动画
+    if (type == PlayHand::Hand_Plane || type == PlayHand::Hand_Plane_Two_Pair || type == PlayHand::Hand_Plane_Two_Single) {
+        showAnimation(Plane);
+    } else if (type == PlayHand::Hand_Seq_Pair) {
+        showAnimation(LianDui);
+    } else if (type == PlayHand::Hand_Seq_Single) {
+        showAnimation(ShunZi);
+    } else if (type == PlayHand::Hand_Bomb) {
+        showAnimation(Bomb);
+    } else if (type == PlayHand::Hand_Bomb_Jokers) {
+        showAnimation(JokerBomb);
+    }
+}
+
+void GamePanel::showEndingScorePanel()
+{
+    bool isLord = m_gameCtl->getUserPlayer()->getRole() == Player::Lord ? true : false;
+    bool isWin = m_gameCtl->getUserPlayer()->isWin();
+    EndingPanel* endingPanel = new EndingPanel(isLord, isWin, this);
+    endingPanel->show();
+    endingPanel->move((width() - endingPanel->width())/2, -endingPanel->width());
+    endingPanel->setPlayerScore(m_gameCtl->getUserPlayer()->getScore(),
+                                m_gameCtl->getLeftRobot()->getScore(),
+                                m_gameCtl->getRightRobot()->getScore());
+
+    // 动画展现
+    QPropertyAnimation *animation = new QPropertyAnimation(endingPanel, "geometry", this);
+    animation->setDuration(1500);   // 动画持续的时间 1.5s
+    animation->setStartValue(QRect(endingPanel->x(), endingPanel->y(), endingPanel->width(), endingPanel->height()));
+    animation->setEndValue(QRect((width() - endingPanel->width()) / 2, (height() - endingPanel->height()) / 2,
+                                 endingPanel->width(), endingPanel->height()));
+    animation->setEasingCurve(QEasingCurve(QEasingCurve::OutBounce));  // 设置窗口的运动曲线
+    animation->start();
+
+    connect(endingPanel, &EndingPanel::continueGame, this, [=]() {  // 继续游戏按钮点击事件
+        endingPanel->close();
+        endingPanel->deleteLater();
+        animation->deleteLater();
+        ui->btnGroup->selectPanel(ButtonGroup::Empty);
+        gameStatusPrecess(GameControl::DispatchCard);
+    });
+
+}
+
+void GamePanel::initCountDown()
+{
+    UserPlayer* player = m_gameCtl->getUserPlayer();
+    m_countDown = new CountDown(this);
+    m_countDown->move((width() - m_countDown->width())/2, (height() - m_countDown->height())/2);
+    connect(m_countDown, &CountDown::timeout, this, &GamePanel::onPass);  // 超时则跳出出牌(可以改成用机器人进行出牌)
+    connect(player, &UserPlayer::startCountDown, this, [=]() {
+        if (m_gameCtl->getPendPlayer() && m_gameCtl->getPendPlayer() != player) {
+            m_countDown->showCountDown();
+        }
+    });
 }
 
 void GamePanel::paintEvent(QPaintEvent *ev)
@@ -595,5 +666,4 @@ void GamePanel::hidePlayerDropCards(Player *player)
         playerContext.lastCards.clear();
     }
 }
-
 

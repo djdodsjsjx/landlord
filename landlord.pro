@@ -14,7 +14,10 @@ SOURCES += \
     card.cpp \
     cardpanel.cpp \
     cards.cpp \
+    countdown.cpp \
+    endingpanel.cpp \
     gamecontrol.cpp \
+    loadingpanel.cpp \
     main.cpp \
     gamepanel.cpp \
     mybutton.cpp \
@@ -33,8 +36,11 @@ HEADERS += \
     card.h \
     cardpanel.h \
     cards.h \
+    countdown.h \
+    endingpanel.h \
     gamecontrol.h \
     gamepanel.h \
+    loadingpanel.h \
     mybutton.h \
     player.h \
     playhand.h \

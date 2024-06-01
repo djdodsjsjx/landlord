@@ -3,6 +3,7 @@
 
 #include <AnimationWindow.h>
 #include <CardPanel.h>
+#include <CountDown.h>
 #include <GameControl.h>
 #include <QLabel>
 #include <QMainWindow>
@@ -43,6 +44,9 @@ public:
     void onPlayHand();  // 出牌处理函数(按钮信号）
     void onPass();  // 不出牌处理函数
     void onPlayHandShow(Player* player, Cards& cards);  // 出牌显示处理函数(控制信号)
+    void showEndingScorePanel();  // 显示结束面板
+
+    void initCountDown();  // 倒计时窗口初始化
 protected:
     void paintEvent(QPaintEvent* ev);
     void mouseMoveEvent(QMouseEvent* ev);
@@ -78,9 +82,10 @@ private:
     QTimer* m_timer;  // 发牌定时器
     QRect m_cardsRect;  // 现存卡牌占有的矩形
     QMap<CardPanel*, QRect> m_userCards;  // 用户每张卡牌窗口对应矩形
-    AnimationWindow* m_animation;
+    AnimationWindow* m_animation;  // 动画对象
     CardPanel* m_curSelCard;  // 此刻被鼠标选中的窗口
     QSet<CardPanel*> m_selCards;   // 已经被选中的卡牌窗口
+    CountDown* m_countDown;  // 倒计时对象
 
 };
 #endif // GAMEPANEL_H
