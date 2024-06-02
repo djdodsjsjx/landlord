@@ -4,7 +4,7 @@ Player::Player(QObject *parent)
     : QObject{parent}
 {}
 
-Player::Player(QString name, QObject *parent)
+Player::Player(QString name, QObject *parent) : Player(parent)
 {
     m_name = name;
 }

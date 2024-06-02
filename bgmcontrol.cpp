@@ -145,12 +145,11 @@ void BGMControl::playLastMusic(CardType type, PlayerSex sex)
         list->setCurrentIndex(type);
         player->play();
     } else {
-        QTimer::singleShot(1500, this, [=]() {  // 1.5循环播放
+        QTimer::singleShot(1500, this, [=]() {
             list->setCurrentIndex(type);
             player->play();
         });
     }
-
 }
 
 void BGMControl::playPassMusic(PlayerSex sex)

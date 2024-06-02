@@ -115,7 +115,7 @@ Card Cards::takeRandomCard()
 CardList Cards::toCardList(SortType type)
 {
     CardList list;
-    for (auto& c : m_cards) list << c;
+    for (const auto& c : m_cards) list << c;
     if (type == Asc) std::sort(list.begin(), list.end(), lessSort);
     else if (type == Desc) std::sort(list.begin(), list.end(), greaterSort);
 

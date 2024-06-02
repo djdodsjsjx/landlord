@@ -18,6 +18,7 @@ Cards Strategy::makeStrategy()
     }
 
     PlayHand type(pendCards);
+
     Cards beatCards = getGreaterCards(type);  // 得到大于该牌型的某一组牌
     return whetherToBeat(beatCards) ? beatCards : Cards();  // 是否出牌
 }
@@ -429,7 +430,8 @@ QVector<Cards> Strategy::getTripleSingleOrPair(Card::CardPoint begin, PlayHand::
     }
     Cards remainCards = m_cards;
     remainCards.remove(findTriple);
-    QVector<Cards> findSingleOrPair = Strategy(m_player, remainCards).getCards(Card::Card_Begin, 0);
+
+    QVector<Cards> findSingleOrPair = Strategy(m_player, remainCards).getCards(Card::Card_Begin, (int)type - 1);
     if (findSingleOrPair.isEmpty()) {
         return QVector<Cards>();
     }
@@ -462,7 +464,7 @@ QVector<Cards> Strategy::getPlane2SingleOr2Pair(Card::CardPoint begin, PlayHand:
     }
     Cards remainCards = m_cards;
     remainCards.remove(findPlane);
-    QVector<Cards> findSingleOrPair = Strategy(m_player, remainCards).getCards(Card::Card_Begin, 0);
+    QVector<Cards> findSingleOrPair = Strategy(m_player, remainCards).getCards(Card::Card_Begin, (int)type - 1);
     if (findSingleOrPair.size() < 2) {
         return QVector<Cards> ();
     }

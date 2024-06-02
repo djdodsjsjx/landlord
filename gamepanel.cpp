@@ -185,7 +185,6 @@ void GamePanel::initGameScene()
 void GamePanel::gameStatusPrecess(GameControl::GameStatus status)  // 玩家区域相关显示设置
 {
     m_gameStatus = status;
-    int idx = 0;
     switch(status) {
     case GameControl::DispatchCard: {  // 发牌
         for (auto it = m_cardMap.begin(); it != m_cardMap.end(); ++ it) {
