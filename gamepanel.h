@@ -2,6 +2,7 @@
 #define GAMEPANEL_H
 
 #include <AnimationWindow.h>
+#include <BGMControl.h>
 #include <CardPanel.h>
 #include <CountDown.h>
 #include <GameControl.h>
@@ -86,6 +87,6 @@ private:
     CardPanel* m_curSelCard;  // 此刻被鼠标选中的窗口
     QSet<CardPanel*> m_selCards;   // 已经被选中的卡牌窗口
     CountDown* m_countDown;  // 倒计时对象
-
+    BGMControl* m_bgm;
 };
 #endif // GAMEPANEL_H

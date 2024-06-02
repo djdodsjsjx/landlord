@@ -14,7 +14,7 @@ public:
 
 signals:
     void timeout();
-
+    void notMuchTime();
 protected:
     void paintEvent(QPaintEvent* ev);
 private:
